@@ -2,7 +2,7 @@ import http, { ServerResponse } from 'http';
 import { NotFoundException, BaseError } from './errors';
 import { EndpointHandler, ErrorHandler } from './http';
 import { HttpOptions } from './options';
-import { jsonParser } from './parsers';
+import { formParser, jsonParser } from './parsers';
 import { createRequestObject, Request } from './request';
 import { MiddlewareHandler } from './types';
 
@@ -126,7 +126,7 @@ export function createServer(
         }
 
         if (WRITABLE_METHODS.includes(method as Methods)) {
-            const contentType = req.headers['content-type'] || 'application/json';
+            const contentType = req.headers['content-type'] || 'application/x-www-form-urlencoded';
             const chunks: Buffer[] = [];
             let bytes = 0;
 
@@ -147,6 +147,10 @@ export function createServer(
 
                 if (contentType === 'application/json') {
                     body = jsonParser(buffer);
+                }
+
+                if (contentType === 'application/x-www-form-urlencoded') {
+                    body = formParser(buffer);
                 }
 
                 const request = createRequestObject(req, params, query, body);
