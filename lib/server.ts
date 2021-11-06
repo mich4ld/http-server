@@ -1,4 +1,4 @@
-import http, { ServerResponse } from 'http';
+import http, { IncomingMessage, ServerResponse } from 'http';
 import { NotFoundException, BaseError } from './errors';
 import { EndpointHandler, ErrorHandler } from './http';
 import { HttpOptions } from './options';
@@ -71,6 +71,8 @@ async function handleRequest(
     }
 }
 
+
+
 async function handleMiddlewares(req: Request, res: ServerResponse, middlewares: MiddlewareHandler[]) {
     for (const middlewareFn of middlewares) {
         let err: unknown;
@@ -104,6 +106,22 @@ async function handleEndpoint(req: Request, res: ServerResponse, endpoint: Endpo
     }
 }
 
+function getIp(req: IncomingMessage, trustProxy?: boolean) {
+    if (trustProxy) {
+        return req.headers['x-forwarded-for'] as string || req.socket.remoteAddress;
+    }
+
+    return req.socket.remoteAddress;
+}
+
+function getHost(req: IncomingMessage, port: number | string, trustProxy?: boolean): string {
+    if (trustProxy) {
+        return req.headers['x-forwarded-host'] as string || req.headers.host || 'localhost:'+port;
+    }
+
+    return req.headers.host || 'localhost:'+port;
+}
+
 export function createServer(
     port: number | string,
     options: HttpOptions, 
@@ -114,7 +132,9 @@ export function createServer(
     return http.createServer(async (req, res) => {
         const method = req.method || Methods.GET;
         const reqUrl = req.url || '/';
-        const url = new URL(reqUrl, `http://${req.headers.host || 'localhost:'+port}`);
+        const host = getHost(req, port, options.trustProxy);
+        const url = new URL(reqUrl, `http://${host}`);
+        const ip = getIp(req, options.trustProxy);
 
         const endpoint = handlers.find(_endpoint => _endpoint.match(url.pathname) && _endpoint.method === method);
         if (!endpoint) {
@@ -154,7 +174,7 @@ export function createServer(
                     body = formParser(buffer);
                 }
 
-                const request = createRequestObject(req, params, query, body);
+                const request = createRequestObject(req, params, query, body, host, ip);
                 await handleRequest(request, res, middlewares, endpoint, errorHandler);
             });
 
@@ -164,7 +184,7 @@ export function createServer(
         const params = (endpoint.match(url.pathname) as any).params;
         const query = url.searchParams;
         const body = {};
-        const request = createRequestObject(req, params, query, body);
+        const request = createRequestObject(req, params, query, body, host, ip);
 
         await handleRequest(request, res, middlewares, endpoint, errorHandler);
         

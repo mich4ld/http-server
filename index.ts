@@ -1,16 +1,17 @@
 import { Http } from './lib/http';
 
 import helmet from 'helmet';
-import cors from 'cors';
 
-const app = new Http();
+const app = new Http({
+    cors: false,
+    trustProxy: true,
+});
 
 app.use(helmet());
-app.use(cors());
 
 app.get('/users/:userId', (req, res) => {
     const { userId } = req.params;
-    return { id: userId, username: 'Karol' }
+    return { id: userId, username: 'Karol', ip: req.ip }
 });
 
 app.post('/', (req, res) => {

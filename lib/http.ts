@@ -5,6 +5,8 @@ import { Request } from './request';
 import { ServerResponse } from 'http';
 import { MiddlewareHandler } from './types';
 
+import cors from 'cors';
+
 export interface EndpointHandler {
     match: MatchFunction;
     method: Methods;
@@ -72,6 +74,10 @@ export class Http {
     }
 
     listen(port: number | string, cb?: (port: number | string) => any) {
+        if (this.settings.cors) {
+            this.use(cors());
+        }
+
         const server = createServer(
             port, 
             this.settings, 
