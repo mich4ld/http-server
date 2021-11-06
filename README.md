@@ -2,9 +2,9 @@
 Pseudo Express.js clone in Node.js (NOT production-ready). Project created just for fun.
 
 ### Features:
-- Simple codebase;
 - Error handling;
-- TypeScript
+- TypeScript;
+- Body parsing by default;
 
 ### Usage
 ```ts
