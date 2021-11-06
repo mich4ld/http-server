@@ -1,5 +1,5 @@
 # Http Server
-Pseudo Express.js clone in Node.js (NOT production-ready). Project created just for fun.
+`http` module wrapper and pseudo Express.js API clone in Node.js (NOT production-ready). Project created just for fun.
 
 ### Features:
 - Error handling;
