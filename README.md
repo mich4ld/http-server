@@ -5,6 +5,7 @@
 - Error handling;
 - TypeScript;
 - Body parsing by default;
+- Trust-Proxy;
 
 ### Usage
 ```ts
