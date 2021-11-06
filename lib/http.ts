@@ -3,6 +3,7 @@ import { createServer, Methods } from './server';
 import { match, MatchFunction } from 'path-to-regexp';
 import { Request } from './request';
 import { ServerResponse } from 'http';
+import { MiddlewareHandler } from './types';
 
 export interface EndpointHandler {
     match: MatchFunction;
@@ -15,7 +16,7 @@ export type ErrorHandler = (err: unknown, req: Request, res: ServerResponse) => 
 
 export class Http {
     private settings: HttpOptions;
-    private middlewares: HttpHandler[] = [];
+    private middlewares: MiddlewareHandler[] = [];
     private handlers: EndpointHandler[] = [];
     private errorHandler?: ErrorHandler;
 
@@ -34,7 +35,7 @@ export class Http {
         this.handlers.push(endpointHandler);
     }
 
-    use(handler: HttpHandler) {
+    use(handler: MiddlewareHandler) {
         this.middlewares.push(handler);
     }
 

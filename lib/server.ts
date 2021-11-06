@@ -1,8 +1,9 @@
 import http from 'http';
 import { NotFoundException, BaseError } from './errors';
 import { EndpointHandler, ErrorHandler } from './http';
-import { HttpHandler, HttpOptions } from './options';
+import { HttpOptions } from './options';
 import { createRequestObject } from './request';
+import { MiddlewareHandler } from './types';
 
 function buildError(err: unknown) {
     const isHttpError = err instanceof BaseError && err.statusCode;
@@ -26,7 +27,7 @@ export enum Methods {
 export function createServer(
     port: number | string,
     options: HttpOptions, 
-    middlewares: HttpHandler[],
+    middlewares: MiddlewareHandler[],
     handlers: EndpointHandler[],
     errorHandler?: ErrorHandler,
 ) {
@@ -48,8 +49,25 @@ export function createServer(
         const query = url.searchParams;
         const body = {};
         const request = createRequestObject(req, params, query, body);
-        
+
         try {
+            for (const middlewareFn of middlewares) {
+                let err: unknown;
+                
+                function next(_err?: unknown) {
+                    err = _err;
+                }
+    
+                await middlewareFn(request, res, next);
+                if (res.writableEnded) {
+                    return;
+                }
+
+                if (err && !res.writableEnded) {
+                    throw err;
+                }
+            }
+
             const result = await endpoint.handler(request, res);
             
             if (typeof result === 'string' && !res.writableEnded) {
