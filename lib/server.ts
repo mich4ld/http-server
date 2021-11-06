@@ -115,11 +115,12 @@ export function createServer(
         const method = req.method || Methods.GET;
         const reqUrl = req.url || '/';
         const url = new URL(reqUrl, `http://${req.headers.host || 'localhost:'+port}`);
-        
+
         const endpoint = handlers.find(_endpoint => _endpoint.match(url.pathname) && _endpoint.method === method);
         if (!endpoint) {
             const err = new NotFoundException(`Path ${url.pathname} not found`);
             const errBody = buildError(err);
+            res.setHeader('Content-Type', 'application/json');
             res.statusCode = errBody.statusCode;
         
             return res.end(JSON.stringify(errBody))

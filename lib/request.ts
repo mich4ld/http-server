@@ -1,4 +1,5 @@
 import { IncomingMessage } from "http";
+import { paramsToObject } from "./utils";
 
 export interface Request extends IncomingMessage {
     params: any;
@@ -8,9 +9,10 @@ export interface Request extends IncomingMessage {
 
 export function createRequestObject(
     req: IncomingMessage, 
-    params: any = {}, 
-    query: any = {}, 
+    params: URLSearchParams, 
+    _query: any = {}, 
     body: any = {}
 ): Request {
+    const query = paramsToObject(_query);
     return Object.assign(req, { params, query, body });
 }
